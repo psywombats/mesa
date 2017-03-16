@@ -1,0 +1,23 @@
+# Compiled source #
+###################
+
+# OS garbage #
+##############
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# Unity garbage #
+#################
+project_mesa/Library/*
+project_mesa/Temp/*
+
+# Visual Studio garbage #
+#########################
+*.sln
+project_mesa/.vs/*
