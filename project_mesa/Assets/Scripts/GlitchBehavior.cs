@@ -10,9 +10,8 @@ public class GlitchBehavior : MonoBehaviour {
     private float elapsedSeconds;
 
     public void Awake() {
-        material = new Material(shader);
         SpriteRenderer renderer = GetComponent<SpriteRenderer>();
-        renderer.material = material;
+        material = renderer.material;
     }
 
     public void OnDestroy() {

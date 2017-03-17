@@ -5,6 +5,13 @@
         [MaterialToggle] PixelSnap("Pixel snap", Float) = 0
         
         _Elapsed("Elapsed Seconds", Range(0, 1)) = 0.0
+        
+        _HDispChance("HDisp Chance", Range(0, 1)) = 0.5
+        _HDispPower("HDisp Power", Range(-1, 1)) = 0.5
+        _HDispPowerVariance("HDisp Power Variance", Range(0, 1)) = 0.5
+        _HDispChunking("HDisp Chunk Size", Range(0, 1)) = 0.5
+        _HDispChunkingVariance("HDisp Chunking Variance", Range(0, 1)) = 0.5
+        [MaterialToggle] _HDispSloppyPower("HDisp Sloppy Power", Float) = 0 
     }
     
 	SubShader {
@@ -25,6 +32,12 @@
             CGPROGRAM
             
             float _Elapsed;
+            float _HDispChance;
+            float _HDispPower;
+            float _HDispPowerVariance;
+            float _HDispChunking;
+            float _HDispChunkingVariance;
+            float _HDispSloppyPower;
             
 			#pragma vertex vert
 			#pragma fragment frag
@@ -66,12 +79,34 @@
 			sampler2D _MainTex;
 			sampler2D _AlphaTex;
             
+            // for when 0.0001 and 0.1 are equally valid
+            // source is from a slider, usually 0-1
+            float cubicEase(float source,  float newMax) {
+                return (source * source * source) * newMax;
+            }
+            
+            // simple remap from source to a new max scale
+            float ease(float source, float newMax) {
+                return source * newMax;
+            }
+            
             float rand2(float2 seed) {
                 return frac(sin(dot(seed, float2(12.9898, 78.233))) * 43758.5453);
             }
             
             float rand3(float3 seed) {
                 return frac(sin(dot(seed, float3(12.9898, 78.233, 45.5432))) * 43758.5453);
+            }
+            
+            // varies the source value by a percentage
+            // seed: seed value to pass to rand
+            // source: the value to modify
+            // variance: from 0-1 how much variance is allowed (from slider)
+            // varianceRange: at max variance, the percent that source varies
+            float variance3(float source, float variance, float varianceRange, float3 seed) {
+                float v = variance * varianceRange;
+                float v2 = v * rand3(seed);
+                return source + (source * v2);
             }
             
             // argument is in range 0-1
@@ -92,16 +127,19 @@
 			}
 
 			fixed4 frag(v2f IN) : SV_Target {
-                float2 texcoord = IN.texcoord;
+                float2 xy = IN.texcoord;
+                float t = _Elapsed;
                 
                 // horizontal chunk displacement
-                float chunk = rand3(float3(0.0, interval(IN.texcoord[1], _Elapsed), _Elapsed)) * 0.04 + 0.01;
-                float check = rand3(float3(0.1, interval(IN.texcoord[1], chunk), _Elapsed));
-                if (check < 0.1) {
-                    texcoord[0] += rand3(float3(0.2, interval(IN.texcoord[1], chunk), _Elapsed)) * 0.02;
+                float hdispChunkSize = variance3(cubicEase(_HDispChunking, 0.2), _HDispChunkingVariance, 1.0, float3(0.0, 0.0, t));
+                float hdispChance = cubicEase(_HDispChance, 0.05);
+                float hdispRoll = rand3(float3(0.1, interval(xy[1], hdispChunkSize), t));
+                if (hdispRoll < hdispChance) {
+                    float powerSeed = _HDispSloppyPower < 1.0 ? interval(xy[1], hdispChunkSize) : xy[1];
+                    xy[0] += variance3(cubicEase(_HDispPower, 0.15), _HDispPowerVariance, 1.0, float3(0.2, powerSeed, t));
                 }
                 
-                fixed4 c = SampleSpriteTexture (texcoord) * IN.color;
+                fixed4 c = SampleSpriteTexture(xy) * IN.color;
 				c.rgb *= c.a;
 				return c;
 			}
