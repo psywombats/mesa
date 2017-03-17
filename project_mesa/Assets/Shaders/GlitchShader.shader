@@ -4,14 +4,25 @@
         _Color("Tint", Color) = (1,1,1,1)
         [MaterialToggle] PixelSnap("Pixel snap", Float) = 0
         
-        _Elapsed("Elapsed Seconds", Range(0, 1)) = 0.0
+        _Elapsed("Elapsed Seconds", Range(0, 1)) = 1.0
         
+        [MaterialToggle] _HDispEnabled(" === HDisp Enabled === ", Float) = 1.0
+        [MaterialToggle] _HDispSloppyPower("HDisp Sloppy Power", Float) = 0
         _HDispChance("HDisp Chance", Range(0, 1)) = 0.5
-        _HDispPower("HDisp Power", Range(-1, 1)) = 0.5
+        _HDispPower("HDisp Power", Range(0, 1)) = 0.5
         _HDispPowerVariance("HDisp Power Variance", Range(0, 1)) = 0.5
         _HDispChunking("HDisp Chunk Size", Range(0, 1)) = 0.5
         _HDispChunkingVariance("HDisp Chunking Variance", Range(0, 1)) = 0.5
-        [MaterialToggle] _HDispSloppyPower("HDisp Sloppy Power", Float) = 0 
+        
+        [MaterialToggle] _HBleedEnabled(" === HBleed Enabled === ", Float) = 0
+        [MaterialToggle] _HBleedAlphaRestrict("HBleed Alpha Restricted", Float) = 0
+        _HBleedChance("HBleed Chance", Range(0, 1)) = 0.5
+        _HBleedPower("HBleed Power", Range(-1, 1)) = 0.5
+        _HBleedPowerVariance("HBleed Power Variance", Range(0, 1)) = 0.5
+        _HBleedChunking("HBleed Chunk Size", Range(0, 1)) = 0.5
+        _HBleedChunkingVariance("HBleed Chunking Variance", Range(0, 1)) = 0.5
+        _HBleedTailing("HBleed Tail Size", Range(0, 1)) = 0.5
+        _HBleedTailingVariance("HBleed Tail Variance", Range(0, 1)) = 0.5
     }
     
 	SubShader {
@@ -32,12 +43,24 @@
             CGPROGRAM
             
             float _Elapsed;
+            
+            float _HDispEnabled;
             float _HDispChance;
             float _HDispPower;
             float _HDispPowerVariance;
             float _HDispChunking;
             float _HDispChunkingVariance;
             float _HDispSloppyPower;
+            
+            float _HBleedEnabled;
+            float _HBleedChance;
+            float _HBleedPower;
+            float _HBleedPowerVariance;
+            float _HBleedChunking;
+            float _HBleedChunkingVariance;
+            float _HBleedTailing;
+            float _HBleedTailingVariance;
+            float _HBleedAlphaRestrict;
             
 			#pragma vertex vert
 			#pragma fragment frag
@@ -95,7 +118,11 @@
             }
             
             float rand3(float3 seed) {
-                return frac(sin(dot(seed, float3(12.9898, 78.233, 45.5432))) * 43758.5453);
+                return frac(sin(dot(seed, float3(45.5432, 12.9898, 78.233))) * 43758.5453);
+            }
+            
+            float lerp(float a, float b, float r) {
+                return r * a + (1.0 - r) * b;
             }
             
             // varies the source value by a percentage
@@ -128,19 +155,47 @@
 
 			fixed4 frag(v2f IN) : SV_Target {
                 float2 xy = IN.texcoord;
-                float t = _Elapsed;
+                float t = _Elapsed + 500.0;
                 
                 // horizontal chunk displacement
-                float hdispChunkSize = variance3(cubicEase(_HDispChunking, 0.2), _HDispChunkingVariance, 1.0, float3(0.0, 0.0, t));
-                float hdispChance = cubicEase(_HDispChance, 0.05);
-                float hdispRoll = rand3(float3(0.1, interval(xy[1], hdispChunkSize), t));
-                if (hdispRoll < hdispChance) {
-                    float powerSeed = _HDispSloppyPower < 1.0 ? interval(xy[1], hdispChunkSize) : xy[1];
-                    xy[0] += variance3(cubicEase(_HDispPower, 0.15), _HDispPowerVariance, 1.0, float3(0.2, powerSeed, t));
+                if (_HDispEnabled > 0.0) {
+                    float hdispChunkSize = variance3(cubicEase(_HDispChunking, 0.2), _HDispChunkingVariance, 1.0, float3(0.0, 0.0, t));
+                    float hdispChance = cubicEase(_HDispChance, 0.05);
+                    float hdispRoll = rand3(float3(0.1, interval(xy[1], hdispChunkSize), t));
+                    if (hdispRoll > 1.0 - hdispChance) {
+                        float powerSeed = _HDispSloppyPower < 1.0 ? interval(xy[1], hdispChunkSize) : xy[1];
+                        xy[0] += variance3(cubicEase(_HDispPower, 0.15), _HDispPowerVariance, 1.0, float3(0.2, powerSeed, t));
+                    }
                 }
                 
                 fixed4 c = SampleSpriteTexture(xy) * IN.color;
 				c.rgb *= c.a;
+                
+                // horizontal color bleed
+                if (_HBleedEnabled > 0.0) {
+                    float hbleedTailSize = variance3(cubicEase(_HBleedTailing, 0.5), _HBleedTailingVariance, 1.0, float3(0.0, 0.0, t));
+                    float hbleedChunkSize = variance3(cubicEase(_HBleedChunking, 0.2), _HBleedChunkingVariance, 1.0, float3(0.0, 0.0, t));
+                    float hbleedChance = cubicEase(_HBleedChance, 1.0);
+                    float hbleedXInterval = interval(xy[0], abs(hbleedTailSize));
+                    float hbleedYInterval = interval(xy[1], hbleedChunkSize);
+                    float hbleedRoll = rand3(float3(hbleedXInterval, hbleedYInterval, t));
+                    if (hbleedRoll > 1.0 - hbleedChance) {
+                        float r = (xy[0] - hbleedXInterval) / abs(hbleedTailSize);
+                        fixed4 c2 = SampleSpriteTexture(float2(hbleedXInterval, xy[1])) * IN.color;
+                        c2.rgb *= c2.a;
+                        
+                        fixed4 smear;
+                        smear.r = lerp(c.r, c2.r, r);
+                        smear.g = lerp(c.g, c2.g, r);
+                        smear.b = lerp(c.b, c2.b, r);
+                        if (c.a == 0.0 || _HBleedAlphaRestrict < 1.0) {
+                            c.r = (smear.r > c.r) ? smear.r : c.r;
+                            c.g = (smear.g > c.g) ? smear.g : c.g;
+                            c.b = (smear.b > c.b) ? smear.b : c.b;
+                        }
+                    }
+                }
+                
 				return c;
 			}
 		ENDCG
