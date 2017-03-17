@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(SpriteRenderer))]
 public class GlitchBehavior : MonoBehaviour {
     public Shader shader;
     
@@ -10,6 +11,8 @@ public class GlitchBehavior : MonoBehaviour {
 
     public void Awake() {
         material = new Material(shader);
+        SpriteRenderer renderer = GetComponent<SpriteRenderer>();
+        renderer.material = material;
     }
 
     public void OnDestroy() {
@@ -34,6 +37,6 @@ public class GlitchBehavior : MonoBehaviour {
     }
 
     private void AssignCommonShaderVariables() {
-        float elapsed = elapsedSeconds;
+        material.SetFloat("_Elapsed", elapsedSeconds);
     }
 }
