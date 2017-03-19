@@ -21,8 +21,6 @@
         _HBleedChunkingVariance("HBleed Chunking Variance", Range(0, 1)) = 0.5
         _HBleedTailing("HBleed Tail Size", Range(0, 1)) = 0.5
         _HBleedTailingVariance("HBleed Tail Variance", Range(0, 1)) = 0.5
-        
-        [Space(25)][MaterialToggle] _HBleedEnabled(" === Static frames enabled === ", Float) = 0
     }
     
 	SubShader {
@@ -200,6 +198,8 @@
                         }
                     }
                 }
+                
+                // static frames
                 
 				return c;
 			}
