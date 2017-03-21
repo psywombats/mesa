@@ -21,6 +21,24 @@
         _HBleedChunkingVariance("HBleed Chunking Variance", Range(0, 1)) = 0.5
         _HBleedTailing("HBleed Tail Size", Range(0, 1)) = 0.5
         _HBleedTailingVariance("HBleed Tail Variance", Range(0, 1)) = 0.5
+        
+        [Space(25)][MaterialToggle] _SFrameEnabled(" === Static Frames Enabled === ", Float) = 0
+        [MaterialToggle] _SFrameAlphaIncluded("HBleed Alpha Included", Float) = 0
+        _SFrameChance("HBleed Chance", Range(0, 1)) = 0.5
+        _SFrameChunking("HBleed Chunk Size", Range(0, 1)) = 0.5
+        _SFrameChunkingVariance("HBleed Chunking Variance", Range(0, 1)) = 0.5
+        
+        [Space(25)][MaterialToggle] _PDistEnabled(" === Palette Distortion Enabled === ", Float) = 0
+        [MaterialToggle] _PDistAlphaIncluded("PDist Alpha Included", Float) = 0
+        [MaterialToggle] _PDistSimultaneousInvert("Simultaneous Invert", Float) = 0
+        _PDistInvertR("R Inversion Chance", Range(0, 1)) = 0.0
+        _PDistInvertG("G Inversion Chance", Range(0, 1)) = 0.0
+        _PDistInvertB("B Inversion Chance", Range(0, 1)) = 0.0
+        _PDistMaxR("R Max Chance", Range(0, 1)) = 0.0
+        _PDistMaxG("G Max Chance", Range(0, 1)) = 0.0
+        _PDistMaxB("B Max Chance", Range(0, 1)) = 0.0
+        _PDistMonocolorChance("Monocolor Chance", Range(0, 1)) = 0.0
+        _PDistMonocolor("Monocolor", Color) = (1.0, 1.0, 1.0, 1.0)
     }
     
 	SubShader {
@@ -57,6 +75,24 @@
             float _HBleedTailing;
             float _HBleedTailingVariance;
             float _HBleedAlphaRestrict;
+            
+            float _SFrameEnabled;
+            float _SFrameAlphaIncluded;
+            float _SFrameChance;
+            float _SFrameChunking;
+            float _SFrameChunkingVariance;
+            
+            float _PDistEnabled;
+            float _PDistAlphaIncluded;
+            float _PDistInvertR;
+            float _PDistInvertG;
+            float _PDistInvertB;
+            float _PDistSimultaneousInvert;
+            float _PDistMaxR;
+            float _PDistMaxG;
+            float _PDistMaxB;
+            float _PDistMonocolorChance;
+            float4 _PDistMonocolor;
             
 			#pragma vertex vert
 			#pragma fragment frag
@@ -144,6 +180,30 @@
             float interval(float source, float interval) {
                 return intervalR(source, interval, 12.34);
             }
+            
+            // inverts a given color channel
+            // source: this is the source color that will be inverted
+            // channelIndex: the index to flip (r/g/b 0/1/2)
+            // chance: will be cubicly eased to 0-1 range
+            // seed: covariant
+            fixed4 invertChannel(fixed4 source, int channelIndex, float chance, float seed) {
+                fixed4 result = source;
+                float roll = rand2(_Elapsed, seed);
+                float invertChance = cubicEase(chance, 1.0);
+                if ((roll > 1.0 - invertChance) && (source.a > 0.02 || _PDistAlphaIncluded > 0.0)) {
+                    result[channelIndex] = 1.0 - result[channelIndex];
+                }
+                return result;
+            }
+            fixed4 maxChannel(fixed4 source, int channelIndex, float chance, float seed) {
+                fixed4 result = source;
+                float roll = rand2(_Elapsed, seed);
+                float invertChance = cubicEase(chance, 1.0);
+                if ((roll > 1.0 - invertChance) && (source.a > 0.02 || _PDistAlphaIncluded > 0.0)) {
+                    result[channelIndex] = 1.0;
+                }
+                return result;
+            }
 
 			fixed4 SampleSpriteTexture (float2 uv) {
 				fixed4 color = tex2D (_MainTex, uv);
@@ -179,9 +239,9 @@
                     float hbleedTailSize = variance3(cubicEase(_HBleedTailing, 0.5), _HBleedTailingVariance, 1.0, float3(0.0, 0.0, t));
                     float hbleedChunkSize = variance3(cubicEase(_HBleedChunking, 0.2), _HBleedChunkingVariance, 1.0, float3(0.0, 0.0, t));
                     float hbleedChance = cubicEase(_HBleedChance, 1.0);
-                    float hbleedXInterval = intervalR(xy[0], abs(hbleedTailSize), xy[1]);
-                    float hbleedYInterval = interval(xy[1], hbleedChunkSize);
-                    float hbleedRoll = rand3(hbleedXInterval, hbleedYInterval, t);
+                    float hbleedYInterval = interval(xy[1], 0.1);
+                    float hbleedXInterval = intervalR(xy[0], abs(hbleedTailSize), hbleedChance * 100);
+                    float hbleedRoll = rand3(hbleedXInterval * 100, hbleedYInterval * 200, t);
                     if (hbleedRoll > 1.0 - hbleedChance) {
                         float r = (xy[0] - hbleedXInterval) / abs(hbleedTailSize);
                         fixed4 c2 = SampleSpriteTexture(float2(hbleedXInterval, xy[1])) * IN.color;
@@ -200,6 +260,46 @@
                 }
                 
                 // static frames
+                if (_SFrameEnabled > 0.0) {
+                    float sframeChance = cubicEase(_SFrameChance, 1.0) + 0.01;
+                    float sframeRoll = rand2(0.6, t);
+                    if ((_SFrameAlphaIncluded || c.a >= 0.02) && (sframeRoll > 1.0 - sframeChance)) {
+                        float sframeChunkSize = variance3(cubicEase(_SFrameChunking, 0.2), _SFrameChunkingVariance, 1.0, float3(0.0, 0.0, t));
+                        if (sframeChunkSize < 0.001) {
+                            sframeChunkSize = 0.001;
+                        }
+                        float sframeInterval = intervalR(xy[0], sframeChunkSize, t);
+                        float sframeSubroll = rand3(sframeInterval * 200.0, xy[1] * 1000.0, t);
+                        if (sframeSubroll > 0.5) {
+                            c = float4(0.0, 0.0, 0.0, 1.0);
+                        } else {
+                            c = float4(1.0, 1.0, 1.0, 1.0);
+                        }
+                    }
+                }
+                
+                // palette distorions
+                if (_PDistEnabled > 0.0) {
+                    float covariant = 5.0;
+                    c = invertChannel(c, 0, _PDistInvertR, covariant);
+                    if (_PDistSimultaneousInvert != 0.0) covariant += 1.0;
+                    c = invertChannel(c, 1, _PDistInvertG, covariant);
+                    if (_PDistSimultaneousInvert != 0.0) covariant += 1.0;
+                    c = invertChannel(c, 2, _PDistInvertB, covariant);
+                    
+                    c = maxChannel(c, 0, _PDistMaxR, 8.0);
+                    c = maxChannel(c, 1, _PDistMaxG, 9.0);
+                    c = maxChannel(c, 2, _PDistMaxB, 10.0);
+                    
+                    float monoRoll = rand2(t, 11.0);
+                    float monoChance = cubicEase(_PDistMonocolorChance, 1.0);
+                    if (monoRoll > 1.0 - monoChance) {
+                        float bright = (c[0] + c[1] + c[2]) / 3.0;
+                        c[0] = _PDistMonocolor[0] * bright;
+                        c[1] = _PDistMonocolor[1] * bright;
+                        c[2] = _PDistMonocolor[2] * bright;
+                    }
+                }
                 
 				return c;
 			}
