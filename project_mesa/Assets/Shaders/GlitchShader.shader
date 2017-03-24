@@ -6,7 +6,7 @@
         
         _Elapsed("Elapsed Seconds", Range(0, 1)) = 1.0
         
-        [Space(25)][MaterialToggle] _HDispEnabled(" === HDisp Enabled === ", Float) = 1.0
+        [Space(25)][MaterialToggle] _HDispEnabled(" === Horizontal Disp Enabled === ", Float) = 1.0
         [MaterialToggle] _HDispSloppyPower("HDisp Sloppy Power", Float) = 0
         _HDispChance("HDisp Chance", Range(0, 1)) = 0.5
         _HDispPower("HDisp Power", Range(0, 1)) = 0.5
@@ -14,7 +14,7 @@
         _HDispChunking("HDisp Chunk Size", Range(0, 1)) = 0.5
         _HDispChunkingVariance("HDisp Chunking Variance", Range(0, 1)) = 0.5
         
-        [Space(25)][MaterialToggle] _HBleedEnabled(" === HBleed Enabled === ", Float) = 0
+        [Space(25)][MaterialToggle] _HBleedEnabled(" === Horizontal Bleed Enabled === ", Float) = 0
         [MaterialToggle] _HBleedAlphaRestrict("HBleed Alpha Restricted", Float) = 0
         _HBleedChance("HBleed Chance", Range(0, 1)) = 0.5
         _HBleedChunking("HBleed Chunk Size", Range(0, 1)) = 0.5
@@ -39,6 +39,20 @@
         _PDistMaxB("B Max Chance", Range(0, 1)) = 0.0
         _PDistMonocolorChance("Monocolor Chance", Range(0, 1)) = 0.0
         _PDistMonocolor("Monocolor", Color) = (1.0, 1.0, 1.0, 1.0)
+        
+        [Space(25)][MaterialToggle] _RDispEnabled(" === Rectangular Displacement Enabled === ", Float) = 1.0
+        [MaterialToggle] _RDispCopyOnly("RDisp Non-destructive Swatch Moving", Range(0, 1)) = 0.0
+        _RDispTex("Background Texture", 2D) = "black" {}
+        _RDispChance("RDisp Chance", Range(0, 1)) = 0.5
+        [MaterialToggle] _RDispSquareChunk("RDisp Only Square Chunking", Range(0, 1)) = 0.0
+        _RDispChunkXSize("RDisp Chunk X Size", Range(0, 1)) = 0.5
+        _RDispChunkYSize("RDisp Chunk Y Size", Range(0, 1)) = 0.5
+        _RDispChunkVariance("RDisp Chunking Variance", Range(0, 1)) = 0.5
+        [MaterialToggle] _RDispSquareDisp("RDisp Only Square Displacement", Range(0, 1)) = 0.0
+        _RDispMinPowerX("RDisp Displacement Min Power X", Range(-1, 1)) = -0.5
+        _RDispMaxPowerX("RDisp Displacement Max Power X", Range(-1, 1)) = 0.5
+        _RDispMinPowerY("RDisp Displacement Min Power Y", Range(-1, 1)) = -0.5
+        _RDispMaxPowerY("RDisp Displacement Max Power Y", Range(-1, 1)) = 0.5
     }
     
 	SubShader {
@@ -93,6 +107,20 @@
             float _PDistMaxB;
             float _PDistMonocolorChance;
             float4 _PDistMonocolor;
+            
+            float _RDispEnabled;
+            sampler2D _RDispTex;
+            float _RDispSquareChunk;
+            float _RDispChunkXSize;
+            float _RDispChunkYSize;
+            float _RDispChunkVariance;
+            float _RDispSquareDisp;
+            float _RDispMinPowerX;
+            float _RDispMaxPowerX;
+            float _RDispMinPowerY;
+            float _RDispMaxPowerY;
+            float _RDispChance;
+            float _RDispCopyOnly;
             
 			#pragma vertex vert
 			#pragma fragment frag
@@ -155,6 +183,13 @@
             
             float lerp(float a, float b, float r) {
                 return r * a + (1.0 - r) * b;
+            }
+            
+            // returns a result between rangeMin and rangeMax, eased
+            float randRange(float rangeMin, float rangeMax, float easedMax, float3 seed) {
+                float base = rangeMin;
+                base = base + (rangeMax - rangeMin) * rand3(seed[0], seed[1], seed[2]);
+                return cubicEase(base, easedMax);
             }
             
             // varies the source value by a percentage
@@ -233,6 +268,37 @@
                 
                 fixed4 c = SampleSpriteTexture(xy) * IN.color;
 				c.rgb *= c.a;
+                
+                // rectangular displacement
+                if (_RDispEnabled > 0.0) {
+                    float chunkSizeX = variance3(cubicEase(_RDispChunkXSize, 0.3), _RDispChunkVariance, 1.0, float3(11.0, 0.0, t));
+                    float chunkSizeY = variance3(cubicEase(_RDispChunkYSize, 0.3), _RDispChunkVariance, 1.0, float3(13.0, 0.0, t));
+                    float chance = cubicEase(_RDispChance, 1.0);
+                    
+                    // source (we are the source coords)
+                    if (_RDispCopyOnly == 0.0) {
+                        float sourceChunkX = intervalR(xy[0], chunkSizeX, 12.0);
+                        float sourceChunkY = intervalR(xy[1], chunkSizeY, 14.0);
+                        float sourceRoll = rand3(t, sourceChunkX, sourceChunkY);
+                        if (sourceRoll > 1.0 - chance) {
+                            c = tex2D(_RDispTex, xy);
+                            c.rgb *= c.a;
+                        }
+                    }
+
+                    // destination (we are the destination coords)
+                    float offX = randRange(_RDispMinPowerX, _RDispMaxPowerX, 0.2, float3(15.0, 0.0, t));
+                    float offY = randRange(_RDispMinPowerY, _RDispMaxPowerY, 0.2, float3(16.0, 0.0, t));
+                    float sourceX = xy[0] + offX;
+                    float sourceY = xy[1] + offY;
+                    float sourceChunkX = intervalR(sourceX, chunkSizeX, 12.0);
+                    float sourceChunkY = intervalR(sourceY, chunkSizeY, 14.0);
+                    float sourceRoll = rand3(t, sourceChunkX, sourceChunkY);
+                    if (sourceRoll > 1.0 - chance) {
+                        c = tex2D(_MainTex, float2(sourceX, sourceY));
+                        c.rgb *= c.a;
+                    }
+                }
                 
                 // horizontal color bleed
                 if (_HBleedEnabled > 0.0) {
