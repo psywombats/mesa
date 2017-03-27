@@ -36,6 +36,6 @@ public class GlitchBehavior : MonoBehaviour {
     }
 
     private void AssignCommonShaderVariables() {
-        material.SetFloat("_Elapsed", System.DateTime.Now.Millisecond);
+        material.SetFloat("_Elapsed", elapsedSeconds);
     }
 }

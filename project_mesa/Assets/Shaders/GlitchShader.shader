@@ -4,7 +4,7 @@
         _Color("Tint", Color) = (1,1,1,1)
         [MaterialToggle] PixelSnap("Pixel snap", Float) = 0
         
-        _Elapsed("Elapsed Seconds", Range(0, 1)) = 1.0
+        _Elapsed("Elapsed Seconds", Float) = 1.0
         
         [Space(25)][MaterialToggle] _HDispEnabled(" === Horizontal Disp Enabled === ", Float) = 1.0
         [MaterialToggle] _HDispSloppyPower("HDisp Sloppy Power", Float) = 0
@@ -40,7 +40,7 @@
         _PDistMonocolorChance("Monocolor Chance", Range(0, 1)) = 0.0
         _PDistMonocolor("Monocolor", Color) = (1.0, 1.0, 1.0, 1.0)
         
-        [Space(25)][MaterialToggle] _RDispEnabled(" === Rectangular Displacement Enabled === ", Float) = 1.0
+        [Space(25)][MaterialToggle] _RDispEnabled(" === Rectangular Displacement Enabled === ", Float) = 0.0
         [MaterialToggle] _RDispCopyOnly("RDisp Non-destructive Swatch Moving", Range(0, 1)) = 0.0
         _RDispTex("Background Texture", 2D) = "black" {}
         _RDispChance("RDisp Chance", Range(0, 1)) = 0.5
@@ -53,6 +53,15 @@
         _RDispMaxPowerX("RDisp Displacement Max Power X", Range(-1, 1)) = 0.5
         _RDispMinPowerY("RDisp Displacement Min Power Y", Range(-1, 1)) = -0.5
         _RDispMaxPowerY("RDisp Displacement Max Power Y", Range(-1, 1)) = 0.5
+        
+        [Space(25)][MaterialToggle] _VSyncEnabled(" === VSync Enabled === ", Float) = 0.0
+        _VSyncPowerMin("VSync Min Jitter Power", Range(-1, 1)) = -0.5
+        _VSyncPowerMax("VSync Max Jitter Power", Range(-1, 1)) = 0.5
+        _VSyncJitterChance("VSync Jitter Chance", Range(0, 1)) = 0.5
+        _VSyncJitterDuration("VSync Jitter Duration", Range(0, 1)) = 0.5
+        _VSyncChance("VSync Loop Chance", Range(0, 1)) = 0.5
+        _VSyncDuration("VSync Loop Duration", Range(0, 1)) = 0.5
+        
     }
     
 	SubShader {
@@ -121,6 +130,14 @@
             float _RDispMaxPowerY;
             float _RDispChance;
             float _RDispCopyOnly;
+            
+            float _VSyncEnabled;
+            float _VSyncPowerMin;
+            float _VSyncPowerMax;
+            float _VSyncChance;
+            float _VSyncDuration;
+            float _VSyncJitterChance;
+            float _VSyncJitterDuration;
             
 			#pragma vertex vert
 			#pragma fragment frag
@@ -203,6 +220,11 @@
                 return source + (source * v2);
             }
             
+            // same as interval but no covariance and not clamped (for time)
+            float intervalT(float interval) {
+                return ((float)((int)(_Elapsed * (1.0/interval)))) * interval;
+            }
+            
             // same as interval, except it should covary based on a given seed
             float intervalR(float source, float interval, float seed) {
                 float stagger = rand2(seed, _Elapsed);
@@ -263,6 +285,39 @@
                     if (hdispRoll > 1.0 - hdispChance) {
                         float powerSeed = _HDispSloppyPower < 1.0 ? interval(xy[1], hdispChunkSize) : xy[1];
                         xy[0] += variance3(cubicEase(_HDispPower, 0.15), _HDispPowerVariance, 1.0, float3(0.2, powerSeed, t));
+                    }
+                }
+                
+                // v-sync
+                if (_VSyncEnabled > 0.0 ) {
+                    float syncDuration = cubicEase(_VSyncDuration, 0.5);
+                    float syncChunk = intervalT(syncDuration);
+                    float syncChance = cubicEase(_VSyncChance, 1.0);
+                    float syncRoll = rand2(syncChunk, 20.0);
+                    if (syncRoll > 1.0 - syncChance) {
+                        float syncElapsed = (_Elapsed - syncChunk) / syncDuration;
+                        xy[1] -= syncElapsed;
+                    } else {
+                        float jitterDuration = cubicEase(_VSyncJitterDuration, 0.4);
+                        float jitterChunk = intervalT(jitterDuration);
+                        float jitterChance = cubicEase(_VSyncJitterChance, 1.0);
+                        float jitterRoll = rand2(jitterChunk, 21.0);
+                        if (jitterRoll > 1.0 - jitterChance) {
+                            float jitterElapsed = (_Elapsed - jitterChunk) / jitterDuration;
+                            float power = randRange(_VSyncPowerMin, _VSyncPowerMax, 0.4, float3(jitterChunk, 22.0, 22.0));
+                            if (jitterElapsed < 0.5) {
+                                power *= (jitterElapsed * 2.0);
+                            } else {
+                                power *= (1.0 - ((jitterElapsed - 0.5) * 2.0));
+                            }
+                            xy[1] += power;
+                        }
+                    }
+                    if (xy[1] < 0.0) {
+                        xy[1] += 1.0;
+                    }
+                    if (xy[1] > 1.0) {
+                        xy[1] -= 1.0;
                     }
                 }
                 
