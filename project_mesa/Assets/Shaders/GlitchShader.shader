@@ -24,9 +24,9 @@
         
         [Space(25)][MaterialToggle] _SFrameEnabled(" === Static Frames Enabled === ", Float) = 0
         [MaterialToggle] _SFrameAlphaIncluded("HBleed Alpha Included", Float) = 0
-        _SFrameChance("HBleed Chance", Range(0, 1)) = 0.5
-        _SFrameChunking("HBleed Chunk Size", Range(0, 1)) = 0.5
-        _SFrameChunkingVariance("HBleed Chunking Variance", Range(0, 1)) = 0.5
+        _SFrameChance("SFrame Chance", Range(0, 1)) = 0.5
+        _SFrameChunking("SFrame Chunk Size", Range(0, 1)) = 0.5
+        _SFrameChunkingVariance("SFrame Chunking Variance", Range(0, 1)) = 0.5
         
         [Space(25)][MaterialToggle] _PDistEnabled(" === Palette Distortion Enabled === ", Float) = 0
         [MaterialToggle] _PDistAlphaIncluded("PDist Alpha Included", Float) = 0
@@ -61,6 +61,11 @@
         _VSyncJitterDuration("VSync Jitter Duration", Range(0, 1)) = 0.5
         _VSyncChance("VSync Loop Chance", Range(0, 1)) = 0.5
         _VSyncDuration("VSync Loop Duration", Range(0, 1)) = 0.5
+        
+        [Space(25)][MaterialToggle] _SShiftEnabled(" === Scanline Shift Enabled == ", Float) = 0.0
+        _SShiftChance("SShift Chance", Range(0, 1)) = .5
+        _SShiftPowerMin("SShift Power Min", Range(0, 1)) = 0.25
+        _SShiftPowerMax("SShift Power Max", Range(0, 1)) = 0.5
         
     }
     
@@ -139,9 +144,14 @@
             float _VSyncJitterChance;
             float _VSyncJitterDuration;
             
+            float _SShiftEnabled;
+            float _SShiftChance;
+            float _SShiftPowerMin;
+            float _SShiftPowerMax;
+            
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma target 2.0
+			#pragma target 3.0
 			#pragma multi_compile _ PIXELSNAP_ON
 			#pragma multi_compile _ ETC1_EXTERNAL_ALPHA
 			#include "UnityCG.cginc"
@@ -275,6 +285,7 @@
 
 			fixed4 frag(v2f IN) : SV_Target {
                 float2 xy = IN.texcoord;
+                float2 pxXY = IN.vertex;
                 float t = _Elapsed + 500.0;
                 
                 // horizontal chunk displacement
@@ -318,6 +329,26 @@
                     }
                     if (xy[1] > 1.0) {
                         xy[1] -= 1.0;
+                    }
+                }
+                
+                // scanline shift
+                if (_SShiftEnabled > 0.0) {
+                    float chance = cubicEase(_SShiftChance, 1.0);
+                    float roll = rand2(23.0, t);
+                    if (roll > 1.0 - chance) {
+                        int remain = 0;
+                        if (rand2(t, 24.0) > 0.5) {
+                            remain = 1;
+                        }
+                        int mod = pxXY[1] % 2;
+                        if (mod == remain) {
+                            float power = randRange(_SShiftPowerMin, _SShiftPowerMax, 0.2, float3(24.0, t, 0.0));
+                            if (rand2(t, 25.0) > 0.5) {
+                                power *= -1;
+                            }
+                            xy[0] += power;
+                        }
                     }
                 }
                 
