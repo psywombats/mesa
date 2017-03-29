@@ -42,9 +42,10 @@
         
         [Space(25)][MaterialToggle] _RDispEnabled(" === Rectangular Displacement Enabled === ", Float) = 0.0
         [MaterialToggle] _RDispCopyOnly("RDisp Non-destructive Swatch Moving", Range(0, 1)) = 0.0
+        [MaterialToggle] _RDispInvertSource("RDisp Inverted Background", Range(0, 1)) = 0.0
+        [MaterialToggle] _RDispKeepAlpha("RDisp Preserve Source Alpha", Range(0, 1)) = 1.0
         _RDispTex("Background Texture", 2D) = "black" {}
         _RDispChance("RDisp Chance", Range(0, 1)) = 0.5
-        [MaterialToggle] _RDispSquareChunk("RDisp Only Square Chunking", Range(0, 1)) = 0.0
         _RDispChunkXSize("RDisp Chunk X Size", Range(0, 1)) = 0.5
         _RDispChunkYSize("RDisp Chunk Y Size", Range(0, 1)) = 0.5
         _RDispChunkVariance("RDisp Chunking Variance", Range(0, 1)) = 0.5
@@ -124,7 +125,7 @@
             
             float _RDispEnabled;
             sampler2D _RDispTex;
-            float _RDispSquareChunk;
+            float _RDispInvertSource;
             float _RDispChunkXSize;
             float _RDispChunkYSize;
             float _RDispChunkVariance;
@@ -135,6 +136,7 @@
             float _RDispMaxPowerY;
             float _RDispChance;
             float _RDispCopyOnly;
+            float _RDispKeepAlpha;
             
             float _VSyncEnabled;
             float _VSyncPowerMin;
@@ -366,9 +368,21 @@
                         float sourceChunkX = intervalR(xy[0], chunkSizeX, 12.0);
                         float sourceChunkY = intervalR(xy[1], chunkSizeY, 14.0);
                         float sourceRoll = rand3(t, sourceChunkX, sourceChunkY);
-                        if (sourceRoll > 1.0 - chance) {
-                            c = tex2D(_RDispTex, xy);
-                            c.rgb *= c.a;
+                        if ((sourceRoll > 1.0 - chance) && (!_RDispKeepAlpha || (c.a > 0.01))) {
+                            if (_RDispInvertSource > 0.0) {
+                                float brightness = (c[0] + c[1] + c[2]);
+                                c[0] = (1.0f - c[0]);
+                                c[1] = (1.0f - c[1]);
+                                c[2] = (1.0f - c[2]);
+                                float newBrightness = (c[0] + c[1] + c[2]);
+                                float ratio = brightness / newBrightness;
+                                c[0] *= ratio;
+                                c[1] *= ratio;
+                                c[2] *= ratio;
+                            } else {
+                                c = tex2D(_RDispTex, xy);
+                                c.rgb *= c.a;
+                            }
                         }
                     }
 

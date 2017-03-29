@@ -77,6 +77,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\ColorMapperBehavior.cs" />
     <Compile Include="Assets\Scripts\GlitchBehavior.cs" />
+    <Compile Include="Assets\Scripts\TimeScaleSlider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\BitShader.shader" />

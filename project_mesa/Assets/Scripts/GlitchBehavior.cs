@@ -11,11 +11,11 @@ public class GlitchBehavior : MonoBehaviour {
 
     public void Awake() {
         SpriteRenderer renderer = GetComponent<SpriteRenderer>();
-        material = renderer.material;
+        material = renderer.sharedMaterial;
     }
 
     public void OnDestroy() {
-        Destroy(material);
+        
     }
 
     public void Update() {
