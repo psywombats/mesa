@@ -68,6 +68,22 @@
         _SShiftPowerMin("SShift Power Min", Range(0, 1)) = 0.25
         _SShiftPowerMax("SShift Power Max", Range(0, 1)) = 0.5
         
+        [Space(25)][MaterialToggle] _TDistEnabled(" === Traveling Distortion Enabled == ", Float) = 0.0
+        [MaterialToggle] _TDistTailoff("TDist Effect Linear Tailoff", Range(0, 1)) = 0
+        [MaterialToggle] _TDistExcludeAlpha("TDist Exclude Alpha from Effects", Range(0, 1)) = 0
+        _TDistChance("TDist Chance", Range(0, 1)) = .5
+        _TDistDuration("TDist Duration", Range(0, 1)) = .5
+        _TDistChunking("TDist Falloff Chunking", Range(0, 1)) = .5
+        _TDistStaticBarSize("TDist Static Bar Size", Range(0, 1)) = .5
+        _TDistStaticSize("TDist Static Horiz Chunk Size", Range(0, 1)) = .5
+        [MaterialToggle] _TDistHDisp("TDist Horizontal Displacement", Range(0, 1)) = 0
+        _TDistHDispPower("TDist Horizontal Power", Range(0, 1)) = .5
+        _TDistHDispPowerVariance("TDist Horizontal Power Variance", Range(0, 1)) = .5
+        _TDistColorBarSize("TDist Color Bar Size", Range(0, 1)) = 0
+        [MaterialToggle] _TDispPreserveBrightness("TDist Preserve Brightness", Range(0, 1)) = 1
+        [MaterialToggle] _TDistInvertR("TDist Invert R", Range(0, 1)) = 0
+        [MaterialToggle] _TDistInvertG("TDist Invert G", Range(0, 1)) = 0
+        [MaterialToggle] _TDistInvertB("TDist Invert B", Range(0, 1)) = 0
     }
     
 	SubShader {
@@ -150,6 +166,23 @@
             float _SShiftChance;
             float _SShiftPowerMin;
             float _SShiftPowerMax;
+            
+            float _TDistEnabled;
+            float _TDistChance;
+            float _TDistDuration;
+            float _TDistColorBarSize;
+            float _TDistStaticBarSize;
+            float _TDistInvertR;
+            float _TDistInvertG;
+            float _TDistInvertB;
+            float _TDistExcludeAlpha;
+            float _TDistStaticSize;
+            float _TDistTailoff;
+            float _TDispPreserveBrightness;
+            float _TDistHDisp;
+            float _TDistHDispPower;
+            float _TDistChunking;
+            float _TDistHDispPowerVariance;
             
 			#pragma vertex vert
 			#pragma fragment frag
@@ -248,6 +281,18 @@
             // but we need to clamp it to say, 0.0, 0.2, 0.4 etc for 1/5 chunks
             float interval(float source, float interval) {
                 return intervalR(source, interval, 12.34);
+            }
+            
+            // return c2 with the brightness of c1
+            fixed4 preserveBrightness(fixed4 c1, fixed4 c2) {
+                fixed4 result = c2;
+                float brightness = (c1[0] + c1[1] + c1[2]);
+                float newBrightness = (c2[0] + c2[1] + c2[2]);
+                float ratio = brightness / newBrightness;
+                result[0] *= ratio;
+                result[1] *= ratio;
+                result[2] *= ratio;
+                return result;
             }
             
             // inverts a given color channel
@@ -370,15 +415,11 @@
                         float sourceRoll = rand3(t, sourceChunkX, sourceChunkY);
                         if ((sourceRoll > 1.0 - chance) && (!_RDispKeepAlpha || (c.a > 0.01))) {
                             if (_RDispInvertSource > 0.0) {
-                                float brightness = (c[0] + c[1] + c[2]);
+                                fixed4 cOrig = c;
                                 c[0] = (1.0f - c[0]);
                                 c[1] = (1.0f - c[1]);
                                 c[2] = (1.0f - c[2]);
-                                float newBrightness = (c[0] + c[1] + c[2]);
-                                float ratio = brightness / newBrightness;
-                                c[0] *= ratio;
-                                c[1] *= ratio;
-                                c[2] *= ratio;
+                                c = preserveBrightness(cOrig, c);
                             } else {
                                 c = tex2D(_RDispTex, xy);
                                 c.rgb *= c.a;
@@ -397,6 +438,97 @@
                     if (sourceRoll > 1.0 - chance) {
                         c = tex2D(_MainTex, float2(sourceX, sourceY));
                         c.rgb *= c.a;
+                    }
+                }
+                
+                // traveling distortion
+                if (_TDistEnabled > 0.0) {
+                    float duration = cubicEase(_TDistDuration, 2.0);
+                    float chunk = intervalT(duration);
+                    float chance = cubicEase(_TDistChance, 1.0);
+                    float roll = rand2(chunk, 26.0);
+                    if (roll > 1.0 - chance) {
+                        float elapsed = (_Elapsed - chunk) / duration;
+                        float maxSize = cubicEase(max(_TDistColorBarSize, _TDistStaticBarSize), 1.0);
+                        if (_TDistColorBarSize > 0.0) {
+                            float colorSize = cubicEase(_TDistColorBarSize, 1.0);
+                            float y1 = lerp(-maxSize, 1.0, elapsed);
+                            float y2 = lerp(0.0, 1.0 + maxSize, elapsed) - (maxSize - colorSize);
+                            if (xy[1] > y1 && xy[1] <= y2) {
+                                float posRatio = 1.0 - ((xy[1] - y1) / (y2 - y1));
+                                float chunkedRatio = posRatio;
+                                if (_TDistChunking > 0.0) {
+                                    float chunkSize = ease(_TDistChunking, .5);
+                                    chunkedRatio = intervalR(posRatio, chunkSize, 28.0);
+                                }
+                                if (_TDistHDisp > 0.0) {
+                                    float power = variance3(cubicEase(_TDistHDispPower, 0.5), _TDistHDispPowerVariance, 1.0, float3(29.0, t, 0.0));
+                                    power *= chunkedRatio;
+                                    c = tex2D(_MainTex, float2(xy[0] + power, xy[1]));
+                                    c.rgb *= c.a;
+                                }
+                                if (!_TDistExcludeAlpha || (c.a > 0.01)) {
+                                    fixed4 cOrig = c;
+                                    if (_TDistInvertR > 0.0) {
+                                        c[0] = 1.0 - c[0];
+                                    }
+                                    if (_TDistInvertG > 0.0) {
+                                        c[1] = 1.0 - c[1];
+                                    }
+                                    if (_TDistInvertB > 0.0) {
+                                        c[2] = 1.0 - c[2];
+                                    }
+                                    if (_TDispPreserveBrightness) {
+                                        c = preserveBrightness(cOrig, c);
+                                    }
+                                    if (_TDistTailoff > 0.0) {
+                                        c[0] = lerp(c[0], cOrig[0], chunkedRatio);
+                                        c[1] = lerp(c[1], cOrig[1], chunkedRatio);
+                                        c[2] = lerp(c[2], cOrig[2], chunkedRatio);
+                                    }
+                                    float fuzzy = rand3(t, xy[0], posRatio);
+                                    if (fuzzy > 0.5) {
+                                        fuzzy = (fuzzy - 0.5) * 2.0;
+                                        float fuzzFactor = 0.08;
+                                        if (fuzzy < 0.33) {
+                                            c[0] += fuzzFactor;
+                                            c[1] += fuzzFactor;
+                                        } else if (fuzzy < 0.66) { 
+                                            c[0] += fuzzFactor;
+                                            c[2] += fuzzFactor;
+                                        } else {
+                                            c[1] += fuzzFactor;
+                                            c[2] += fuzzFactor;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (_TDistStaticBarSize > 0.0) {
+                            float staticSize = cubicEase(_TDistStaticBarSize, 1.0);
+                            float y1 = lerp(-maxSize, 1.0, elapsed);
+                            float y2 = lerp(0.0, 1.0 + maxSize, elapsed) - (maxSize - staticSize);
+                            if (xy[1] > y1 && xy[1] <= y2) {
+                                float posRatio = 1.0 - ((xy[1] - y1) / (y2 - y1));
+                                float chunkedRatio = posRatio;
+                                fixed4 cOrig = c;
+                                float staticSize = cubicEase(_TDistStaticSize, 0.2);
+                                float staticChunk = intervalR(xy[0], staticSize, 27.0);
+                                float staticRoll = rand3(staticChunk, t, xy[1]);
+                                float newValue = 0.0;
+                                if (staticRoll > 0.5) {
+                                    newValue = 1.0;
+                                }
+                                c[0] = newValue;
+                                c[1] = newValue;
+                                c[2] = newValue;
+                                if (_TDistTailoff > 0.0) {
+                                    c[0] = lerp(c[0], cOrig[0], posRatio);
+                                    c[1] = lerp(c[1], cOrig[1], posRatio);
+                                    c[2] = lerp(c[2], cOrig[2], posRatio);
+                                }
+                            }
+                        }
                     }
                 }
                 
