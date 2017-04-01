@@ -6,84 +6,100 @@
         
         _Elapsed("Elapsed Seconds", Float) = 1.0
         
-        [Space(25)][MaterialToggle] _HDispEnabled(" === Horizontal Disp Enabled === ", Float) = 1.0
-        [MaterialToggle] _HDispSloppyPower("HDisp Sloppy Power", Float) = 0
-        _HDispChance("HDisp Chance", Range(0, 1)) = 0.5
-        _HDispPower("HDisp Power", Range(0, 1)) = 0.5
-        _HDispPowerVariance("HDisp Power Variance", Range(0, 1)) = 0.5
-        _HDispChunking("HDisp Chunk Size", Range(0, 1)) = 0.5
-        _HDispChunkingVariance("HDisp Chunking Variance", Range(0, 1)) = 0.5
+        [Space(25)][MaterialToggle] _HDispEnabled(" === Horizontal Displacement === ", Float) = 0.0
+        [MaterialToggle] _HDispSloppyPower("Sloppy power", Float) = 0
+        _HDispChance("Chance", Range(0, 1)) = 0.5
+        _HDispPower("Power", Range(0, 1)) = 0.5
+        _HDispPowerVariance("Power variance", Range(0, 1)) = 0.5
+        _HDispChunking("Chunk size", Range(0, 1)) = 0.5
+        _HDispChunkingVariance("Chunk size variance", Range(0, 1)) = 0.5
         
-        [Space(25)][MaterialToggle] _HBleedEnabled(" === Horizontal Bleed Enabled === ", Float) = 0
-        [MaterialToggle] _HBleedAlphaRestrict("HBleed Alpha Restricted", Float) = 0
-        _HBleedChance("HBleed Chance", Range(0, 1)) = 0.5
-        _HBleedChunking("HBleed Chunk Size", Range(0, 1)) = 0.5
-        _HBleedChunkingVariance("HBleed Chunking Variance", Range(0, 1)) = 0.5
-        _HBleedTailing("HBleed Tail Size", Range(0, 1)) = 0.5
-        _HBleedTailingVariance("HBleed Tail Variance", Range(0, 1)) = 0.5
+        [Space(25)][MaterialToggle] _HBleedEnabled(" === Horizontal Streaking === ", Float) = 0
+        [MaterialToggle] _HBleedAlphaRestrict("Restrict to alpha", Float) = 0
+        _HBleedChance("Chance", Range(0, 1)) = 0.5
+        _HBleedChunking("Chunk size", Range(0, 1)) = 0.5
+        _HBleedChunkingVariance("Chunk size variance", Range(0, 1)) = 0.5
+        _HBleedTailing("Tail length", Range(0, 1)) = 0.5
+        _HBleedTailingVariance("Tail length variance", Range(0, 1)) = 0.5
         
-        [Space(25)][MaterialToggle] _SFrameEnabled(" === Static Frames Enabled === ", Float) = 0
-        [MaterialToggle] _SFrameAlphaIncluded("HBleed Alpha Included", Float) = 0
-        _SFrameChance("SFrame Chance", Range(0, 1)) = 0.5
-        _SFrameChunking("SFrame Chunk Size", Range(0, 1)) = 0.5
-        _SFrameChunkingVariance("SFrame Chunking Variance", Range(0, 1)) = 0.5
+        [Space(25)][MaterialToggle] _SFrameEnabled(" === Static Frames === ", Float) = 0
+        [MaterialToggle] _SFrameAlphaIncluded("Include alpha regions", Float) = 0
+        _SFrameChance("Chance", Range(0, 1)) = 0.5
+        _SFrameChunking("Chunk size", Range(0, 1)) = 0.5
+        _SFrameChunkingVariance("Chunk size variance", Range(0, 1)) = 0.5
         
-        [Space(25)][MaterialToggle] _PDistEnabled(" === Palette Distortion Enabled === ", Float) = 0
-        [MaterialToggle] _PDistAlphaIncluded("PDist Alpha Included", Float) = 0
-        [MaterialToggle] _PDistSimultaneousInvert("Simultaneous Invert", Float) = 0
-        _PDistInvertR("R Inversion Chance", Range(0, 1)) = 0.0
-        _PDistInvertG("G Inversion Chance", Range(0, 1)) = 0.0
-        _PDistInvertB("B Inversion Chance", Range(0, 1)) = 0.0
-        _PDistMaxR("R Max Chance", Range(0, 1)) = 0.0
-        _PDistMaxG("G Max Chance", Range(0, 1)) = 0.0
-        _PDistMaxB("B Max Chance", Range(0, 1)) = 0.0
-        _PDistMonocolorChance("Monocolor Chance", Range(0, 1)) = 0.0
+        [Space(25)][MaterialToggle] _PDistEnabled(" === Palette Distortion === ", Float) = 0
+        [MaterialToggle] _PDistAlphaIncluded("Include alpha regions", Float) = 0
+        [MaterialToggle] _PDistSimultaneousInvert("Synchronized inversion", Float) = 0
+        _PDistInvertR("R inversion chance", Range(0, 1)) = 0.0
+        _PDistInvertG("G inversion chance", Range(0, 1)) = 0.0
+        _PDistInvertB("B inversion chance", Range(0, 1)) = 0.0
+        _PDistMaxR("R max chance", Range(0, 1)) = 0.0
+        _PDistMaxG("G max chance", Range(0, 1)) = 0.0
+        _PDistMaxB("B max chance", Range(0, 1)) = 0.0
+        _PDistMonocolorChance("Monocolor chance", Range(0, 1)) = 0.0
         _PDistMonocolor("Monocolor", Color) = (1.0, 1.0, 1.0, 1.0)
         
-        [Space(25)][MaterialToggle] _RDispEnabled(" === Rectangular Displacement Enabled === ", Float) = 0.0
-        [MaterialToggle] _RDispCopyOnly("RDisp Non-destructive Swatch Moving", Range(0, 1)) = 0.0
-        [MaterialToggle] _RDispInvertSource("RDisp Inverted Background", Range(0, 1)) = 0.0
-        [MaterialToggle] _RDispKeepAlpha("RDisp Preserve Source Alpha", Range(0, 1)) = 1.0
-        _RDispTex("Background Texture", 2D) = "black" {}
-        _RDispChance("RDisp Chance", Range(0, 1)) = 0.5
-        _RDispChunkXSize("RDisp Chunk X Size", Range(0, 1)) = 0.5
-        _RDispChunkYSize("RDisp Chunk Y Size", Range(0, 1)) = 0.5
-        _RDispChunkVariance("RDisp Chunking Variance", Range(0, 1)) = 0.5
-        [MaterialToggle] _RDispSquareDisp("RDisp Only Square Displacement", Range(0, 1)) = 0.0
-        _RDispMinPowerX("RDisp Displacement Min Power X", Range(-1, 1)) = -0.5
-        _RDispMaxPowerX("RDisp Displacement Max Power X", Range(-1, 1)) = 0.5
-        _RDispMinPowerY("RDisp Displacement Min Power Y", Range(-1, 1)) = -0.5
-        _RDispMaxPowerY("RDisp Displacement Max Power Y", Range(-1, 1)) = 0.5
+        [Space(25)][MaterialToggle] _RDispEnabled(" === Rectangular Displacement === ", Float) = 0.0
+        [MaterialToggle] _RDispCopyOnly("Keep source region intact", Range(0, 1)) = 0.0
+        [MaterialToggle] _RDispInvertSource("Invert source background", Range(0, 1)) = 0.0
+        [MaterialToggle] _RDispKeepAlpha("Preserve source alpha", Range(0, 1)) = 1.0
+        _RDispTex("Background texture", 2D) = "black" {}
+        _RDispChance("Chance", Range(0, 1)) = 0.5
+        _RDispChunkXSize("Chunk X Size", Range(0, 1)) = 0.5
+        _RDispChunkYSize("Chunk Y size", Range(0, 1)) = 0.5
+        _RDispChunkVariance("Chunk size variance", Range(0, 1)) = 0.5
+        _RDispMinPowerX("Displacement min dist X", Range(-1, 1)) = -0.5
+        _RDispMaxPowerX("Displacement max dist X", Range(-1, 1)) = 0.5
+        _RDispMinPowerY("Displacement min dist Y", Range(-1, 1)) = -0.5
+        _RDispMaxPowerY("Displacement max dist Y", Range(-1, 1)) = 0.5
         
-        [Space(25)][MaterialToggle] _VSyncEnabled(" === VSync Enabled === ", Float) = 0.0
-        _VSyncPowerMin("VSync Min Jitter Power", Range(-1, 1)) = -0.5
-        _VSyncPowerMax("VSync Max Jitter Power", Range(-1, 1)) = 0.5
-        _VSyncJitterChance("VSync Jitter Chance", Range(0, 1)) = 0.5
-        _VSyncJitterDuration("VSync Jitter Duration", Range(0, 1)) = 0.5
-        _VSyncChance("VSync Loop Chance", Range(0, 1)) = 0.5
-        _VSyncDuration("VSync Loop Duration", Range(0, 1)) = 0.5
+        [Space(25)][MaterialToggle] _VSyncEnabled(" === VSync === ", Float) = 0.0
+        _VSyncPowerMin("Min jitter power", Range(-1, 1)) = -0.5
+        _VSyncPowerMax("Max jitter power", Range(-1, 1)) = 0.5
+        _VSyncJitterChance("Jitter chance", Range(0, 1)) = 0.5
+        _VSyncJitterDuration("Jitter duration", Range(0, 1)) = 0.5
+        _VSyncChance("Loop chance", Range(0, 1)) = 0.5
+        _VSyncDuration("Loop duration", Range(0, 1)) = 0.5
         
-        [Space(25)][MaterialToggle] _SShiftEnabled(" === Scanline Shift Enabled == ", Float) = 0.0
-        _SShiftChance("SShift Chance", Range(0, 1)) = .5
-        _SShiftPowerMin("SShift Power Min", Range(0, 1)) = 0.25
-        _SShiftPowerMax("SShift Power Max", Range(0, 1)) = 0.5
+        [Space(25)][MaterialToggle] _SShiftEnabled(" === Scanline Shift === ", Float) = 0.0
+        _SShiftChance("Chance", Range(0, 1)) = .5
+        _SShiftPowerMin("Min power", Range(0, 1)) = 0.25
+        _SShiftPowerMax("Max power", Range(0, 1)) = 0.5
         
-        [Space(25)][MaterialToggle] _TDistEnabled(" === Traveling Distortion Enabled == ", Float) = 0.0
-        [MaterialToggle] _TDistTailoff("TDist Effect Linear Tailoff", Range(0, 1)) = 0
-        [MaterialToggle] _TDistExcludeAlpha("TDist Exclude Alpha from Effects", Range(0, 1)) = 0
-        _TDistChance("TDist Chance", Range(0, 1)) = .5
-        _TDistDuration("TDist Duration", Range(0, 1)) = .5
-        _TDistChunking("TDist Falloff Chunking", Range(0, 1)) = .5
-        _TDistStaticBarSize("TDist Static Bar Size", Range(0, 1)) = .5
-        _TDistStaticSize("TDist Static Horiz Chunk Size", Range(0, 1)) = .5
-        [MaterialToggle] _TDistHDisp("TDist Horizontal Displacement", Range(0, 1)) = 0
-        _TDistHDispPower("TDist Horizontal Power", Range(0, 1)) = .5
-        _TDistHDispPowerVariance("TDist Horizontal Power Variance", Range(0, 1)) = .5
-        _TDistColorBarSize("TDist Color Bar Size", Range(0, 1)) = 0
-        [MaterialToggle] _TDispPreserveBrightness("TDist Preserve Brightness", Range(0, 1)) = 1
-        [MaterialToggle] _TDistInvertR("TDist Invert R", Range(0, 1)) = 0
-        [MaterialToggle] _TDistInvertG("TDist Invert G", Range(0, 1)) = 0
-        [MaterialToggle] _TDistInvertB("TDist Invert B", Range(0, 1)) = 0
+        [Space(25)][MaterialToggle] _TDistEnabled(" === Traveling Distortion === ", Float) = 0.0
+        [MaterialToggle] _TDistTailoff("Linear tailoff", Range(0, 1)) = 1
+        [MaterialToggle] _TDistExcludeAlpha("Exclude alpha regions", Range(0, 1)) = 0
+        _TDistChance("Chance", Range(0, 1)) = .5
+        _TDistDuration("Duration", Range(0, 1)) = .5
+        _TDistChunking("Chunk height", Range(0, 1)) = .5
+        _TDistStaticBarSize("Static effect height", Range(0, 1)) = .5
+        _TDistStaticSize("Static chunk size", Range(0, 1)) = .5
+        [MaterialToggle] _TDistHDisp("Horizontal displacement enabled", Range(0, 1)) = 0
+        _TDistHDispPower("Displacement power", Range(0, 1)) = .5
+        _TDistHDispPowerVariance("Displacement power variance", Range(0, 1)) = .5
+        _TDistColorBarSize("Color effect height", Range(0, 1)) = 0
+        [MaterialToggle] _TDispPreserveBrightness("Color preserve brightness", Range(0, 1)) = 0
+        [MaterialToggle] _TDistInvertR("Color invert R", Range(0, 1)) = 0
+        [MaterialToggle] _TDistInvertG("Color invert G", Range(0, 1)) = 0
+        [MaterialToggle] _TDistInvertB("Color invert B", Range(0, 1)) = 0
+        
+        [Space(25)][MaterialToggle] _SColorEnabled(" === Scanline Coloring === ", Float) = 0.0
+        [MaterialToggle] _SColorExcludeAlpha("Exclude alpha regions", Range(0, 1)) = 1.0
+        _SColorChance("Chance",  Range(0, 1)) = 0.5
+        _SColorVelocity("Vertical velocity",  Range(-1, 1)) = 0.0
+        _SColorGap("Gap",  Range(0, 1)) = 0.05
+        _SColorBrightness("Brightness change",  Range(-1, 1)) = 0.0
+        [MaterialToggle] _SColorBleed("Full bleed", Range(0, 1)) = 0.0
+        [MaterialToggle] _SColorStatic("Scanline static", Range(0, 1)) = 0.0
+        
+        [Space(25)][MaterialToggle] _PClampEnabled(" === Color Channel Clamping === ", Float) = 0.0
+        [MaterialToggle] _PClampDither("Dithering enabled", Float) = 0.0
+        [MaterialToggle] _PClampDitherVary("Varied dithering enabled", Float) = 0.0
+        _PClampR("R shades allowed",  Range(0, 1)) = 1.0
+        _PClampG("G shades allowed",  Range(0, 1)) = 1.0
+        _PClampB("B shades allowed",  Range(0, 1)) = 1.0
+        _PClampVariance("Variance",  Range(-1, 1)) = 0.0
     }
     
 	SubShader {
@@ -184,6 +200,24 @@
             float _TDistChunking;
             float _TDistHDispPowerVariance;
             
+            float _SColorEnabled;
+            float _SColorBleed;
+            float _SColorStatic;
+            float _SColorBrightness;
+            float _SColorGap;
+            float _SColorChance;
+            float _SColorVelocity;
+            float _SColorExcludeAlpha;
+            
+            float _PClampEnabled;
+            float _PClampSynch;
+            float _PClampDither;
+            float _PClampDitherVary;
+            float _PClampR;
+            float _PClampG;
+            float _PClampB;
+            float _PClampVariance;
+            
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma target 3.0
@@ -277,10 +311,49 @@
                 return clamp(result, 0.0, 1.0);
             }
             
+            // fixed interval, won't vary frame to frame
+            float intervalF(float source, float interval) {
+                return ((float)((int)(source * (1.0/interval)))) * interval;
+            }
+            
             // argument is in range 0-1
             // but we need to clamp it to say, 0.0, 0.2, 0.4 etc for 1/5 chunks
             float interval(float source, float interval) {
                 return intervalR(source, interval, 12.34);
+            }
+            
+            // clamps a color to a fixed pallette
+            // source: original color value
+            // shadesAllowed: 0-1, will ease this to get final shade count
+            // dither: true to weighted-random pick between two nearest shades
+            // vary: dithering choices will vary with time too
+            // seed: how to get the seed for dithering
+            float clampShade(float source, float shadesAllowed, bool dither, bool vary, float2 seed) {
+                if (shadesAllowed >= 1.0) {
+                    return source;
+                }
+                float interval = 1.0 - ease(shadesAllowed, 1.0);
+                float low = intervalF(source, interval);
+                float high = intervalF(source, interval) + interval;
+                if (!dither) {
+                    if (source - low < high - source) {
+                        return low;
+                    } else {
+                        return high;
+                    }
+                }
+                float chance = (high - source) / interval;
+                float roll;
+                if (vary) {
+                    roll = rand3(_Elapsed, seed[0] * 34.0, seed[1] * 35.0);
+                } else {
+                    roll = rand2(seed[0] * 34.0, seed[1] * 35.0);
+                }
+                if (roll > 1.0 - chance) {
+                    return low;
+                } else {
+                    return high;
+                }
             }
             
             // return c2 with the brightness of c1
@@ -555,6 +628,45 @@
                             c.b = (smear.b > c.b) ? smear.b : c.b;
                         }
                     }
+                }
+                
+                // scanline recolorations
+                if (_SColorEnabled > 0.0 && (!_SColorExcludeAlpha || (c.a > 0.01))) {
+                    float chance = cubicEase(_SColorChance, 1.0);
+                    float roll = rand3(31.0, t, 0.0); // dunno if they should turn off independently
+                    if (roll > 1.0 - chance) {
+                        uint chunkSize = floor(cubicEase(_SColorGap, 512.0));
+                        if (chunkSize < 2) {
+                            chunkSize = 2;
+                        }
+                        uint y = pxXY[1];
+                        uint scanlineY = intervalF(y, chunkSize);
+                        uint off = (t * cubicEase(_SColorVelocity, 512.0)) % chunkSize;
+                        if (y == scanlineY + off) {
+                            if (_SColorStatic > 0.0) {
+                                float brightness = 0.0;
+                                if (rand3(t, xy[0] * 31.0, xy[1] * 32.0) > 0.5) {
+                                    brightness = 1.0;
+                                }
+                                c[0] = brightness;
+                                c[1] = brightness;
+                                c[2] = brightness;
+                            }
+                            c[0] += _SColorBrightness;
+                            c[1] += _SColorBrightness;
+                            c[2] += _SColorBrightness;
+                            c[0] = clamp(c[0], 0.0, 1.0);
+                            c[1] = clamp(c[1], 0.0, 1.0);
+                            c[2] = clamp(c[2], 0.0, 1.0);
+                        }
+                    }
+                }
+                
+                // palette clamping
+                if (_PClampEnabled > 0.0 && c.a > 0.01) {
+                    c[0] = clampShade(c[0], _PClampR, _PClampDither > 0.0, _PClampDitherVary > 0.0, xy);
+                    c[1] = clampShade(c[1], _PClampG, _PClampDither > 0.0, _PClampDitherVary > 0.0, xy);
+                    c[2] = clampShade(c[2], _PClampB, _PClampDither > 0.0, _PClampDitherVary > 0.0, xy);
                 }
                 
                 // static frames
