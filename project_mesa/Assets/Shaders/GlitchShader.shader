@@ -93,13 +93,17 @@
         [MaterialToggle] _SColorBleed("Full bleed", Range(0, 1)) = 0.0
         [MaterialToggle] _SColorStatic("Scanline static", Range(0, 1)) = 0.0
         
-        [Space(25)][MaterialToggle] _PClampEnabled(" === Color Channel Clamping === ", Float) = 0.0
-        [MaterialToggle] _PClampDither("Dithering enabled", Float) = 0.0
-        [MaterialToggle] _PClampDitherVary("Varied dithering enabled", Float) = 0.0
-        _PClampR("R shades allowed",  Range(0, 1)) = 1.0
-        _PClampG("G shades allowed",  Range(0, 1)) = 1.0
-        _PClampB("B shades allowed",  Range(0, 1)) = 1.0
-        _PClampVariance("Variance",  Range(-1, 1)) = 0.0
+        [Space(25)][MaterialToggle] _CClampEnabled(" === Color Channel Clamping === ", Float) = 0.0
+        [MaterialToggle] _CClampBlack("Always include true black/white", Float) = 1.0
+        _CClampR("R shades allowed",  Range(0, 1)) = 1.0
+        _CClampG("G shades allowed",  Range(0, 1)) = 1.0
+        _CClampB("B shades allowed",  Range(0, 1)) = 1.0
+        [MaterialToggle] _CClampDither("Dithering enabled", Float) = 0.0
+        [MaterialToggle] _CClampDitherVary("Varied dithering enabled", Float) = 0.0
+        _CClampDitherChunk("Dithering chunk width", Range(0, 1)) = 0.5
+        _CClampJitterR("R colors jitter power",  Range(0, 1)) = 0.0
+        _CClampJitterG("G colors jitter power",  Range(0, 1)) = 0.0
+        _CClampJitterB("B colors jitter power",  Range(0, 1)) = 0.0
     }
     
 	SubShader {
@@ -209,14 +213,19 @@
             float _SColorVelocity;
             float _SColorExcludeAlpha;
             
-            float _PClampEnabled;
-            float _PClampSynch;
-            float _PClampDither;
-            float _PClampDitherVary;
-            float _PClampR;
-            float _PClampG;
-            float _PClampB;
-            float _PClampVariance;
+            float _CClampEnabled;
+            float _CClampSynch;
+            float _CClampDither;
+            float _CClampDitherVary;
+            float _CClampR;
+            float _CClampG;
+            float _CClampB;
+            float _CClampVariance;
+            float _CClampDitherChunk;
+            float _CClampBlack;
+            float _CClampJitterR;
+            float _CClampJitterG;
+            float _CClampJitterB;
             
 			#pragma vertex vert
 			#pragma fragment frag
@@ -329,12 +338,19 @@
             // vary: dithering choices will vary with time too
             // seed: how to get the seed for dithering
             float clampShade(float source, float shadesAllowed, bool dither, bool vary, float2 seed) {
-                if (shadesAllowed >= 1.0) {
+                float interval = 1.0 - ease(shadesAllowed, 1.0);
+                if (interval == 0.0) {
                     return source;
                 }
-                float interval = 1.0 - ease(shadesAllowed, 1.0);
                 float low = intervalF(source, interval);
                 float high = intervalF(source, interval) + interval;
+                //return high;
+                if (_CClampBlack > 0.0 && low < interval / 2.0) {
+                    low = 0.0;
+                }
+                if (_CClampBlack > 0.0 && 1.0 - high < interval / 2.0) {
+                    high = 1.0;
+                }
                 if (!dither) {
                     if (source - low < high - source) {
                         return low;
@@ -354,6 +370,16 @@
                 } else {
                     return high;
                 }
+            }
+            
+            // returns a jitter from -1 to 1 scaled by jitter
+            float jitter(float jitter, fixed2 seed) {
+                if (jitter > 0.0) {
+                    float add = rand2(seed[0] * 36.0, seed[1] * 17.0) * 2.0 - 1.0;
+                    add *= jitter;
+                    return add;
+                }
+                return 0.0;
             }
             
             // return c2 with the brightness of c1
@@ -627,6 +653,9 @@
                             c.g = (smear.g > c.g) ? smear.g : c.g;
                             c.b = (smear.b > c.b) ? smear.b : c.b;
                         }
+                        if (c.a < 0.02) {
+                            c.a = c2.a;
+                        }
                     }
                 }
                 
@@ -634,7 +663,7 @@
                 if (_SColorEnabled > 0.0 && (!_SColorExcludeAlpha || (c.a > 0.01))) {
                     float chance = cubicEase(_SColorChance, 1.0);
                     float roll = rand3(31.0, t, 0.0); // dunno if they should turn off independently
-                    if (roll > 1.0 - chance) {
+                    if (roll >= 1.0 - chance) {
                         uint chunkSize = floor(cubicEase(_SColorGap, 512.0));
                         if (chunkSize < 2) {
                             chunkSize = 2;
@@ -662,11 +691,22 @@
                     }
                 }
                 
-                // palette clamping
-                if (_PClampEnabled > 0.0 && c.a > 0.01) {
-                    c[0] = clampShade(c[0], _PClampR, _PClampDither > 0.0, _PClampDitherVary > 0.0, xy);
-                    c[1] = clampShade(c[1], _PClampG, _PClampDither > 0.0, _PClampDitherVary > 0.0, xy);
-                    c[2] = clampShade(c[2], _PClampB, _PClampDither > 0.0, _PClampDitherVary > 0.0, xy);
+                // channel clamping
+                if (_CClampEnabled > 0.0 && c.a > 0.01) {
+                    fixed2 seed = xy;
+                    if (_CClampDitherChunk > 0.0) {
+                        if (_CClampDitherVary > 0.0) {
+                            seed[0] = intervalR(seed[0], cubicEase(_CClampDitherChunk, 0.5), t);
+                        } else {
+                            seed[0] = intervalF(seed[0], cubicEase(_CClampDitherChunk, 0.5));
+                        }
+                    }
+                    float shadesR = _CClampR + jitter(cubicEase(_CClampJitterR, 1.0), fixed2(t, 10.0));
+                    float shadesG = _CClampG + jitter(cubicEase(_CClampJitterG, 1.0), fixed2(t, 20.0));
+                    float shadesB = _CClampB + jitter(cubicEase(_CClampJitterB, 1.0), fixed2(t, 30.0));
+                    c[0] = clampShade(c[0], shadesR, _CClampDither > 0.0, _CClampDitherVary > 0.0, seed);
+                    c[1] = clampShade(c[1], shadesG, _CClampDither > 0.0, _CClampDitherVary > 0.0, seed);
+                    c[2] = clampShade(c[2], shadesB, _CClampDither > 0.0, _CClampDitherVary > 0.0, seed);
                 }
                 
                 // static frames
@@ -685,29 +725,6 @@
                         } else {
                             c = float4(1.0, 1.0, 1.0, 1.0);
                         }
-                    }
-                }
-                
-                // palette distorions
-                if (_PDistEnabled > 0.0) {
-                    float covariant = 5.0;
-                    c = invertChannel(c, 0, _PDistInvertR, covariant);
-                    if (_PDistSimultaneousInvert != 0.0) covariant += 1.0;
-                    c = invertChannel(c, 1, _PDistInvertG, covariant);
-                    if (_PDistSimultaneousInvert != 0.0) covariant += 1.0;
-                    c = invertChannel(c, 2, _PDistInvertB, covariant);
-                    
-                    c = maxChannel(c, 0, _PDistMaxR, 8.0);
-                    c = maxChannel(c, 1, _PDistMaxG, 9.0);
-                    c = maxChannel(c, 2, _PDistMaxB, 10.0);
-                    
-                    float monoRoll = rand2(t, 11.0);
-                    float monoChance = cubicEase(_PDistMonocolorChance, 1.0);
-                    if (monoRoll > 1.0 - monoChance) {
-                        float bright = (c[0] + c[1] + c[2]) / 3.0;
-                        c[0] = _PDistMonocolor[0] * bright;
-                        c[1] = _PDistMonocolor[1] * bright;
-                        c[2] = _PDistMonocolor[2] * bright;
                     }
                 }
                 
