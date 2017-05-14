@@ -1,0 +1,11 @@
+[title] Vanishing point
+
+It tastes like a handful of dirt. No sooner do I try to swallow the tablet then it dissolves into a film, coating the walls of my mouth with a grainy, foul flavor.
+
+I notice no effects until I try to stand, when I realize that I don't remember when I sat down. Then I see the bottle in front of me. On the desk, not in my hand. I put it down when I took the pill, half an hour ago. But that wasn't so long ago.
+
+Something on the wall catches my eye. A flake of paint? Something else? If I stare at it, maybe I'll...
+
+Focus is difficult. When I find I'm staring at the surface of the table. It's a relief from the harsh flourscence of this cell. I remember waking up to those harsh lights hours ago. Days? What did I do then? It feels as if I've slept a month without rest, but my eyes are still closed. Be still.
+
+[goto 00_intro]

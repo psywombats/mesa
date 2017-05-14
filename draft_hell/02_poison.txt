@@ -1,0 +1,9 @@
+[title]The closed bottle
+
+The rim of the lid is notched and I struggle to open it. Of course, it's a pill bottle. This is a child safety lid. But in my feeble state it takes all of my concentration to force the thing open.
+
+Inside, there are no pills. Just one capsule at the bottom of the bottle, filled with a pearly liquid. I hold it between two fingers, and some viscous fluid within glimmers ominously in the flourescent light. Why I shiver, I don't know.
+
+[choice] This unknown capsule...
+[option] Close the bottle. -> 01_table
+[option] Surely it's harmless. -> 03_poison_eat

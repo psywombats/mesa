@@ -1,0 +1,15 @@
+[title] Intro
+
+I can't bear to open my eyes. This place is too white.
+
+This place? I struggle to remember how long I've been sleeping. Or when I fell asleep, or where this place is at all. Sitting up is an effort, and blinking an even more painful task, but as the whites die down, the room comes into focus.
+
+I'm slumped over on a three-legged stool at a featureless table that could just as soon be a kitchen table as a desk. It's covered by a blur of colors I still can't make out in my drowsy state. Was it something I ate? Drank? When was the last time I ate, anyway? I can't recall when I came to this flourescent white room, or... The when, where, and why are forgotten. I've lost my name. I can't remember my name. The shock sends my surroundings into focus.
+
+Half a dozen floursecent light tubes illuminate the white walls, but in a few splotches, the paint has started to peel to reveal the concrete underneath. Wires run the length of the ceiling, vanishing into holes bored into the walls. Two doors stand at opposite sides of the room, one by my table, and one half-ajar at the other end. The whole length of the room is less than ten feet. My body panics and protests as I rise to my feet, but in this claustrophobic cell of a room, I'm overwhelmed by just one thought: I need to get out of here.
+
+[choice] Where to?
+[option] Examine the table -> 01_table
+[option] Examine the room -> 02_room
+[option] The near door, closed -> 03_store
+[option] The far door, ajar -> 04_foyer

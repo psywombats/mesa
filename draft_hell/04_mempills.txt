@@ -1,0 +1,9 @@
+[title] Foreign substance
+
+There are less of the pills inside than I thought. Each is an orange tablet with a groove etched down the meridian of the chalky surface. Coarse powder fills the bottom of the bottle. I hold the bottle to my nose, but there's no scent. As I fish out one of the tablets, I notice the orange dust on my finger tips. Of course, this wasn't there before... Was it? Can't remember.
+
+Holding the tablet in the light, it appears innocent. But that powder... It must be nothing, right?
+
+[choice] Then, I'll...
+[option] Swallow the tablet. -> 05_mempills_eat
+[option] Leave it. -> 01_table

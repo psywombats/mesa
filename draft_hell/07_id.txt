@@ -1,0 +1,9 @@
+[title] Me?
+
+It's a license of some sort. No, an identity card. There's a portrait of someone in the uppper left. Fair hair, downcast eyes. Is that me? I run my hands over my face, but there's not enough feeling in my fingertips to identify those features. The details on the card blur before my eyes, but I make out a name at the top right. 
+
+JUNE NAGI.
+
+I reread the name. June? There's no epiphany, no bells in my head. If that's me, I truly remember nothing. I pray there's a mirror somewhere in this place so I can confirm I'm the person on this card. I search for anything, a date of birth, an issuing authority, anything else of value on the ID, but either my eyes can't work straight or I can't parse the language. All that I know is that I'm carrying the identity card of June Nagi. If that was me, some time ago... June is lost to me now. The name does me nothing.
+
+[goto 01_table]

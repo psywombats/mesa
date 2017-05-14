@@ -1,0 +1,7 @@
+[title] Empty space
+
+The front page is blank, at least, apart from a smudge at the top left. My fingers feel heavy and foreign and flipping through the pages with any precision is a monumental chore. I peel back the first page, then the second. They're all blank, of course. It takes me ten seconds to get a grasp on the third page, and another ten on the fourth. The whole thing is a waste of time.
+
+Finally on the last page, I spot a message in marker. It's either in a foreign language or some script I've forgotten how to comprehend. I think I can make out letters, but what stands out most is a drawing of a butterfly at the bottom of the page. The image is uneven, wavering, and childish. The butterfly smiles at me, but I can only squint at it, trying to guess its meaning.
+
+[goto 01_table]

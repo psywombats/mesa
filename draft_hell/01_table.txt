@@ -1,0 +1,11 @@
+[title] A nightstand?
+
+It's a wholly uninviting table, with folding legs like something meant for playing cards, but cut entirely from sheet metal. But the edges are rounded, so I assume it must be manufactured somewhere and not put together here. The top is inset with a layer of corkboard. 
+
+Two pink plastic bottles sit on the edge. One is open and three or four pastel orange tablets sit in the bottom. The other is closed, but marked with an 'X' and a half-completed curve of some unknown. An uncapped marker sits nearby. Directly in front of me is a legal pad, yellow either by design or age. And sitting on top of that is a plastic card. I still can't focus my eyes enough to make out the details.
+
+[choice] I could examine one of these in detail.
+[option] Examine the closed bottle -> 02_poison
+[option] Examine the open bottle -> 04_mempills
+[option] Examine the legal pad -> 06_pad
+[option] Examine the card -> 07_id
